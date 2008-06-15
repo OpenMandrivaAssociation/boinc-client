@@ -1,5 +1,5 @@
 %define snap 20080315
-%define version 5_10_45
+%define version_ 5_10_45
 
 Summary:	The BOINC client core
 Name:		boinc-client
