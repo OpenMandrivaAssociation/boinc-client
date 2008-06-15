@@ -203,6 +203,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/crypt_prog
 %{_bindir}/switcher
 %{_initrddir}/%{name}
+%{_mandir}/man1/boinc.1.*
 %{_mandir}/man1/boinc_client.1.*
 %{_mandir}/man1/boinc_cmd.1.*
 %defattr(-,boinc,boinc,-)
