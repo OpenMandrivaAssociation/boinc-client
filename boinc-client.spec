@@ -99,7 +99,7 @@ This package contains development files for %{name}.
 %patch3 -p1
 
 %build
-%configure2_5x --disable-static --enable-unicode STRIP=:
+%configure2_5x --disable-server --disable-static --enable-unicode STRIP=:
 # Parallel make does not work.
 make -k
 
