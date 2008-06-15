@@ -1,12 +1,12 @@
 %define snap 20080315
-%define version_ 5_10_45
+%define version 5_10_45
 
 Summary:	The BOINC client core
 Name:		boinc-client
 Version:	5.10.45
-Release:	14.%{snap}svn%{?dist}
+Release:	%mkrel 1.svn%{snap}.1
 License:	LGPLv2+
-Group:		Applications/Engineering
+Group:		Sciences/Other
 URL:		http://boinc.berkeley.edu/
 # The source for this package was pulled from upstream's vcs. Use the
 # following commands to generate the tarball:
@@ -39,22 +39,17 @@ Patch2:		boinc-parsecolor.patch
 #All the patches above should be removed by releasing boinc 6
 Patch3:		boinc-locales.patch
 #Not upstreamed yet, discussion in progress.
-BuildRoot:	%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-
-Requires:	logrotate
-Requires:	chkconfig
-Requires(pre):  shadow-utils
-
-BuildRequires:	MySQL-python
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRequires:	python-mysql
 BuildRequires:	curl-devel
 BuildRequires:	desktop-file-utils
-BuildRequires:	freeglut-devel
-BuildRequires:	mesa-libGLU-devel
+BuildRequires:	mesaglut-devel
+BuildRequires:	mesaglu-devel
 BuildRequires:	openssl-devel
-BuildRequires:	wxGTK-devel
+BuildRequires:	wxGTK2.8-devel
 BuildRequires:  gettext
 BuildRequires:  mysql-devel
-BuildRequires:  libXmu-devel
+BuildRequires:  libxmu-devel
 BuildRequires:  libjpeg-devel
 
 %description
@@ -74,9 +69,7 @@ of scientific and mathematical research.
 
 %package -n boinc-manager
 Summary:	GUI to control and monitor %{name}
-Group:		Applications/Engineering
-
-Requires:	hicolor-icon-theme
+Group:		Sciences/Other
 Requires:	%{name} = %{version}-%{release}
 
 %description -n boinc-manager
@@ -88,12 +81,12 @@ in which all information and all control elements are available.
 
 %package devel
 Summary:	Development files for %{name}
-Group:		Development/Libraries
+Group:		Development/Other
 
 Requires:	%{name} = %{version}-%{release}
 Requires:	openssl-devel
 Requires:	mysql-devel
-Provides:	%{name}-static = %{version}-%{release}
+Provides:	%{name}-static-devel = %{version}-%{release}
 
 %description devel
 This package contains development files for %{name}.
@@ -106,13 +99,7 @@ This package contains development files for %{name}.
 %patch3 -p1
 
 %build
-%ifarch i386
-%configure --disable-static --enable-unicode --with-boinc-platform=i686-pc-linux-gnu STRIP=:
-%else
-%configure --disable-static --enable-unicode STRIP=:
-%endif
-
-
+%configure2_5x --disable-static --enable-unicode STRIP=:
 # Parallel make does not work.
 make -k
 
@@ -126,7 +113,7 @@ mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/lib/boinc
 mkdir -p $RPM_BUILD_ROOT%{_mandir}/man1
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/
 
-make install INSTALL="%{__install} -p" DESTDIR=$RPM_BUILD_ROOT
+%makeinstall_std
 
 rm -rf $RPM_BUILD_ROOT%{_bindir}/1sec
 rm -rf $RPM_BUILD_ROOT%{_bindir}/concat
@@ -165,7 +152,7 @@ install -p -m644 %{SOURCE5} $RPM_BUILD_ROOT%{_mandir}/man1
 install -p -m644 %{SOURCE6} $RPM_BUILD_ROOT%{_mandir}/man1
 install -p -m644 %{SOURCE7} $RPM_BUILD_ROOT%{_mandir}/man1
 
-desktop-file-install %{?_remove_encoding} --vendor fedora \
+desktop-file-install --vendor="" \
   --dir $RPM_BUILD_ROOT%{_datadir}/applications \
   %{SOURCE3}
 
@@ -186,39 +173,16 @@ install -Dp -m644 %{SOURCE11} $RPM_BUILD_ROOT%{_sysconfdir}/bash_completion.d/bo
 rm -rf $RPM_BUILD_ROOT
 
 %pre
+%_pre_useradd boinc %{_localstatedir}/lib/boinc /sbin/nologin
 
-# Create BOINC user and group
-getent group boinc >/dev/null || groupadd -r boinc
-getent passwd boinc >/dev/null || \
-useradd -r -g boinc -d %{_localstatedir}/lib/boinc -s /sbin/nologin \
-	-c "BOINC client account." boinc
-exit 0
+%postun
+%_postun_userdel boinc
 
 %post
-/sbin/chkconfig --add boinc-client
-
-#correct wrong owner and group on files under /var/lib/boinc and log files
-#caused by bug fixed in 5.10.45-8
-chown --silent -R boinc:boinc %{_localstatedir}/log/boinc* \
-%{_localstatedir}/lib/boinc/* 2>/dev/null || :
+%_post_service %name
 
 %preun
-if [ $1 -eq 0 ]; then #if uninstalling, not only updating
-	/sbin/service boinc-client stop
-	/sbin/chkconfig --del boinc-client
-fi
-
-%post -n boinc-manager
-touch --no-create %{_datadir}/icons/hicolor || :
-if [ -x %{_bindir}/gtk-update-icon-cache ]; then
-  %{_bindir}/gtk-update-icon-cache --quiet %{_datadir}/icons/hicolor || :
-fi
-
-%postun -n boinc-manager
-touch --no-create %{_datadir}/icons/hicolor || :
-if [ -x %{_bindir}/gtk-update-icon-cache ]; then
-  %{_bindir}/gtk-update-icon-cache --quiet %{_datadir}/icons/hicolor || :
-fi
+%_preun_service %name
 
 %files
 %defattr(-,root,root,-)
@@ -239,32 +203,19 @@ fi
 %{_bindir}/crypt_prog
 %{_bindir}/switcher
 %{_initrddir}/%{name}
-%{_mandir}/man1/boinc.1.gz
-%{_mandir}/man1/boinc_client.1.gz
-%{_mandir}/man1/boinc_cmd.1.gz
-%{_mandir}/man1/boincmgr.1.gz
+%{_mandir}/man1/boinc_client.1.*
+%{_mandir}/man1/boinc_cmd.1.*
 %defattr(-,boinc,boinc,-)
-%{_localstatedir}/lib/boinc/
+%{_localstatedir}/lib/boinc
 
 %files -n boinc-manager -f BOINC-Manager.lang
 %defattr(-,root,root,-)
 %{_bindir}/boincmgr
-%{_datadir}/applications/fedora-boinc-manager.desktop
-%{_datadir}/icons/hicolor/16x16/apps/boincmgr.png
-%{_datadir}/icons/hicolor/32x32/apps/boincmgr.png
-%{_datadir}/icons/hicolor/48x48/apps/boincmgr.png
+%{_mandir}/man1/boincmgr.1.*
+%{_datadir}/applications/*.desktop
+%{_iconsdir}/hicolor/*/apps/boincmgr.png
 
 %files devel
 %defattr(-,root,root,-)
-%{_libdir}/libboinc.a
-%{_libdir}/libboinc_api.a
-%{_libdir}/libboinc_zip.a
-%{_libdir}/libsched.a
-%{_libdir}/libboinc_graphics2.a
-%{_libdir}/libboinc_graphics_api.a
-%{_libdir}/libboinc_graphics_impl.a
-%{_libdir}/libboinc_graphics_lib.a
-
-%dir %{_includedir}/BOINC
-%{_includedir}/BOINC/*
-
+%{_libdir}/*.a
+%{_includedir}/BOINC
