@@ -46,7 +46,7 @@ BuildRequires:	desktop-file-utils
 BuildRequires:	mesaglut-devel
 BuildRequires:	mesaglu-devel
 BuildRequires:	openssl-devel
-BuildRequires:	wxGTK2.8-devel
+BuildRequires:	wxgtku2.8-devel
 BuildRequires:  gettext
 BuildRequires:  mysql-devel
 BuildRequires:  libxmu-devel
