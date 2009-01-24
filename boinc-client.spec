@@ -1,9 +1,9 @@
-%define snap 20080315
-%define version_ 5_10_45
+%define snap 20081217
+%define version_ 6_4_5
 
 Summary:	The BOINC client core
 Name:		boinc-client
-Version:	5.10.45
+Version:	6.4.5
 Release:	%mkrel 1.svn%{snap}.1
 License:	LGPLv2+
 Group:		Sciences/Other
@@ -18,7 +18,7 @@ URL:		http://boinc.berkeley.edu/
 # ./trim . Trim all binaries and other unnecessary things.
 # popd
 # tar -czvf boinc-%{version}.tar.gz boinc_core_release_%{version_}/
-Source0:	boinc-%{version}.tar.gz
+Source0:	boinc-%{version}.tar.bz2
 Source1:	boinc-client-init-d
 Source2:	boinc-client-logrotate-d
 Source3:	boinc-manager.desktop
