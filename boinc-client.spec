@@ -93,10 +93,10 @@ This package contains development files for %{name}.
 
 %prep
 %setup -q -n boinc_core_release_%{version_}
-%patch0 -p1
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
+# %patch0 -p1
+# %patch1 -p1
+# %patch2 -p1
+# %patch3 -p1
 
 %build
 %configure2_5x --disable-server --disable-static --enable-unicode STRIP=:
