@@ -1,9 +1,9 @@
 %define snap 20081217
-%define version_ 6_4_5
+%define version_ 6_6_1
 
 Summary:	The BOINC client core
 Name:		boinc-client
-Version:	6.4.5
+Version:	6.6.1
 Release:	%mkrel 1.svn%{snap}.1
 License:	LGPLv2+
 Group:		Sciences/Other
@@ -30,15 +30,6 @@ Source8:	trim
 Source9:	noexec
 Source10:	unicode
 Source11:	boinc-client
-#Changes necessary for GCC 3.4 should be already commited to CVS trunk
-Patch0:		boinc-gcc43.patch
-#http://boinc.berkeley.edu/trac/ticket/647 (patch commited to CVS trunk)
-Patch1:		boinc-gccflags.patch
-#http://boinc.berkeley.edu/trac/ticket/658 (patch commited to CVS trunk)
-Patch2:		boinc-parsecolor.patch
-#All the patches above should be removed by releasing boinc 6
-Patch3:		boinc-locales.patch
-#Not upstreamed yet, discussion in progress.
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires:	python-mysql
 BuildRequires:	curl-devel
@@ -50,7 +41,7 @@ BuildRequires:	wxgtku2.8-devel
 BuildRequires:  gettext
 BuildRequires:  mysql-devel
 BuildRequires:  libxmu-devel
-BuildRequires:  libjpeg-devel
+BuildRequires:  libjpeg-devel libxslt-devel
 
 %description
 The Berkeley Open Infrastructure for Network Computing (BOINC) is an open-
@@ -93,15 +84,14 @@ This package contains development files for %{name}.
 
 %prep
 %setup -q -n boinc_core_release_%{version_}
-# %patch0 -p1
-# %patch1 -p1
-# %patch2 -p1
-# %patch3 -p1
 
 %build
-%configure2_5x --disable-server --disable-static --enable-unicode STRIP=:
+
+./_autosetup
+%configure --disable-server --enable-client --enable-unicode
+# %configure2_5x --disable-server --disable-static --enable-unicode STRIP=:
 # Parallel make does not work.
-make -k
+make
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -113,7 +103,7 @@ mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/lib/boinc
 mkdir -p $RPM_BUILD_ROOT%{_mandir}/man1
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/
 
-%makeinstall_std
+make DESTDIR=$RPM_BUILD_ROOT install
 
 rm -rf $RPM_BUILD_ROOT%{_bindir}/1sec
 rm -rf $RPM_BUILD_ROOT%{_bindir}/concat
