@@ -1,5 +1,6 @@
 %define snap 20081217
 %define version_ 6_6_1
+%define Werror_cflags %nil
 
 Summary:	The BOINC client core
 Name:		boinc-client
@@ -178,6 +179,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 %config(noreplace) %{_sysconfdir}/bash_completion.d/
+%config %{_sysconfdir}/init.d/*
+%config %{_sysconfdir}/sysconfig/boinc-client
 %doc COPYING
 %doc COPYRIGHT
 %doc checkin_notes
@@ -204,9 +207,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/boincmgr
 %{_mandir}/man1/boincmgr.1.*
 %{_datadir}/applications/*.desktop
+%{_datadir}/boinc
 %{_iconsdir}/hicolor/*/apps/boincmgr.png
+%{_datadir}/locale/*
 
 %files devel
 %defattr(-,root,root,-)
 %{_libdir}/*.a
-%{_includedir}/BOINC
+%{_includedir}/boinc
