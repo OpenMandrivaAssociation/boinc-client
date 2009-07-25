@@ -1,11 +1,11 @@
-%define snap 20081217
-%define version_ 6_6_1
+%define snap 20090725
+%define version_ 6_6_37
 %define Werror_cflags %nil
 
 Summary:	The BOINC client core
 Name:		boinc-client
-Version:	6.6.1
-Release:	%mkrel 1.svn%{snap}.2
+Version:	6.6.37
+Release:	%mkrel 0.svn%{snap}.1
 License:	LGPLv2+
 Group:		Sciences/Other
 URL:		http://boinc.berkeley.edu/
@@ -31,6 +31,14 @@ Source8:	trim
 Source9:	noexec
 Source10:	unicode
 Source11:	boinc-client
+#Fix the gcc 4.4@glibc2.10 build
+#Reported in upstream bugtracker: http://boinc.berkeley.edu/trac/ticket/854
+Patch4:		boinc-gcc44.patch
+#Create password file rw for group, this enables passwordless connection
+#of manager from users of the boinc group.
+#This won't be probably upstreamed as it might be unsafe for common usage
+#without setting proper group ownership of the password file.
+Patch6:		boinc-guirpcauth.patch
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires:	python-mysql
 BuildRequires:	curl-devel
@@ -43,6 +51,8 @@ BuildRequires:  gettext
 BuildRequires:  mysql-devel
 BuildRequires:  libxmu-devel
 BuildRequires:  libjpeg-devel libxslt-devel
+BuildRequires:	docbook2x
+
 
 %description
 The Berkeley Open Infrastructure for Network Computing (BOINC) is an open-
@@ -85,83 +95,124 @@ This package contains development files for %{name}.
 
 %prep
 %setup -q -n boinc_core_release_%{version_}
+%patch4 -p0
+%patch6 -p0
+
+# fix permissions and newlines on source files
+chmod 644 clientgui/{DlgItemProperties.h,AsyncRPC.cpp,DlgItemProperties.cpp}
+sed -i 's/\r//' clientgui/DlgItemProperties.cpp
 
 %build
+%ifarch %{ix86}
+%global boinc_platform i686-pc-linux-gnu
+%endif
+%ifarch %{x86_64}
+%global boinc_platform x86_64-pc-linux-gnu
+%endif
+%ifarch powerpc ppc
+%global boinc_platform powerpc-linux-gnu
+%endif
+%ifarch powerpc64 ppc64
+%global boinc_platform ppc64-linux-gnu
+%endif
 
-./_autosetup
-%configure --disable-server --enable-client --enable-unicode
-# %configure2_5x --disable-server --disable-static --enable-unicode STRIP=:
+# We want to install .mo, not .po files, see http://boinc.berkeley.edu/trac/ticket/940
+sed -i 's/BOINC-Manager\.po/BOINC-Manager\.mo/g' locale/Makefile.in
+
+#./_autosetup
+%configure2_5x --disable-server \
+	      --enable-client \
+	      --enable-unicode \
+	      --enable-dynamic-client-linkage \
+	      --with-ssl \
+	      --with-x \
+	      STRIP=: DOCBOOK2X_MAN=/usr/bin/db2x_docbook2man \
+	      --with-boinc-platform=%{boinc_platform}
+
+# Disable rpaths
+sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
+sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
+
 # Parallel make does not work.
 make
 
 %install
-rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/16x16/apps
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/32x32/apps
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/48x48/apps
-mkdir -p $RPM_BUILD_ROOT%{_initrddir}
-mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/lib/boinc
-mkdir -p $RPM_BUILD_ROOT%{_mandir}/man1
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/
+rm -rf %{buildroot}
+mkdir -p %{buildroot}%{_datadir}/icons/hicolor/16x16/apps
+mkdir -p %{buildroot}%{_datadir}/icons/hicolor/32x32/apps
+mkdir -p %{buildroot}%{_datadir}/icons/hicolor/48x48/apps
+mkdir -p %{buildroot}%{_initrddir}
+mkdir -p %{buildroot}%{_localstatedir}/lib/boinc
+mkdir -p %{buildroot}%{_mandir}/man1
+mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d/
 
-make DESTDIR=$RPM_BUILD_ROOT install
+make install INSTALL="%{__install} -p" DESTDIR=%{buildroot}
 
-rm -rf $RPM_BUILD_ROOT%{_bindir}/1sec
-rm -rf $RPM_BUILD_ROOT%{_bindir}/concat
-rm -rf $RPM_BUILD_ROOT%{_bindir}/create_work
-rm -rf $RPM_BUILD_ROOT%{_bindir}/dir_hier_move
-rm -rf $RPM_BUILD_ROOT%{_bindir}/dir_hier_path
-rm -rf $RPM_BUILD_ROOT%{_bindir}/sign_executable
-rm -rf $RPM_BUILD_ROOT%{_bindir}/start
-rm -rf $RPM_BUILD_ROOT%{_bindir}/status
-rm -rf $RPM_BUILD_ROOT%{_bindir}/stop
-rm -rf $RPM_BUILD_ROOT%{_bindir}/updater
-rm -rf $RPM_BUILD_ROOT%{_bindir}/upper_case
+rm -rf %{buildroot}%{_bindir}/1sec
+rm -rf %{buildroot}%{_bindir}/concat
+rm -rf %{buildroot}%{_bindir}/create_work
+rm -rf %{buildroot}%{_bindir}/dir_hier_move
+rm -rf %{buildroot}%{_bindir}/dir_hier_path
+rm -rf %{buildroot}%{_bindir}/sign_executable
+rm -rf %{buildroot}%{_bindir}/start
+rm -rf %{buildroot}%{_bindir}/status
+rm -rf %{buildroot}%{_bindir}/stop
+rm -rf %{buildroot}%{_bindir}/updater
+rm -rf %{buildroot}%{_bindir}/upper_case
 
-pushd $RPM_BUILD_ROOT%{_bindir}
-  ln -s boinc_client boinc
-  mv boinc_gui boincmgr
+pushd %{buildroot}%{_bindir}
+
+# use symlink instead of hardlink
+rm boinc
+ln -s boinc_client boinc
+
+# remove libtool archives
+rm %{buildroot}%{_libdir}/*.la
+
+# rename boincmgr and wrap it
+mv %{buildroot}%{_bindir}/boincmgr %{buildroot}%{_bindir}/boinc_gui
+
+cat > boincmgr <<EOF
+#!/bin/bash
+# wrapper script to allow passwordless manager connections from users of the boinc group
+
+# Look for any local configuration settings of \$BOINCDIR
+if [ -f %{_sysconfdir}/sysconfig/%{name} ]; then
+	. %{_sysconfdir}/sysconfig/%{name} 
+elif [ -f %{_sysconfdir}/default/%{name} ]; then
+	. %{_sysconfdir}/default/%{name}
+fi
+
+# Otherwise pull \$BOINCDIR from the init script
+if [ -z \$BOINCDIR ]; then
+	BOINCDIR=\`grep 'BOINCDIR=' %{_sysconfdir}/init.d/%{name} | tr '"' ' ' | sed 's|BOINCDIR=||'\`;
+fi
+
+cd \$BOINCDIR
+boinc_gui >& /dev/null
+EOF
+chmod a+x boincmgr
 popd
 
-rm $RPM_BUILD_ROOT%{_bindir}/ca-bundle.crt
-#because it's already included in curl
-
-install -p -m755 %{SOURCE1} $RPM_BUILD_ROOT%{_initrddir}/%{name}
-install -p -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
+# own init script and logrotate configuration file
+rm -f %{buildroot}%{_sysconfdir}/init.d/%{name}
+install -p -m755 %{SOURCE1} %{buildroot}%{_initrddir}/%{name}
+install -p -m644 %{SOURCE2} %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 
 # icon
-install -p -m644 sea/boincmgr.16x16.png \
-  $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/16x16/apps/boincmgr.png
-install -p -m644 sea/boincmgr.32x32.png \
-  $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/32x32/apps/boincmgr.png
-install -p -m644 sea/boincmgr.48x48.png \
-  $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/48x48/apps/boincmgr.png
+mv %{buildroot}%{_datadir}/boinc/boincmgr.16x16.png %{buildroot}%{_datadir}/icons/hicolor/16x16/apps/boincmgr.png
+mv %{buildroot}%{_datadir}/boinc/boincmgr.32x32.png %{buildroot}%{_datadir}/icons/hicolor/32x32/apps/boincmgr.png
+mv %{buildroot}%{_datadir}/boinc/boincmgr.48x48.png %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/boincmgr.png
 
-# man page
-install -p -m644 %{SOURCE4} $RPM_BUILD_ROOT%{_mandir}/man1
-install -p -m644 %{SOURCE5} $RPM_BUILD_ROOT%{_mandir}/man1
-install -p -m644 %{SOURCE6} $RPM_BUILD_ROOT%{_mandir}/man1
-install -p -m644 %{SOURCE7} $RPM_BUILD_ROOT%{_mandir}/man1
-
-desktop-file-install --vendor="" \
-  --dir $RPM_BUILD_ROOT%{_datadir}/applications \
-  %{SOURCE3}
-
-# locales
-
-mv locale/client/* locale
-find locale -not -name "BOINC Manager.mo" -type f -delete
-cp -rp locale $RPM_BUILD_ROOT%{_datadir}
-find $RPM_BUILD_ROOT%{_datadir}/locale -name "BOINC Manager.mo" -execdir mv {} BOINC-Manager.mo \;
 
 %find_lang BOINC-Manager
 
 # bash-completion
 
-install -Dp -m644 %{SOURCE11} $RPM_BUILD_ROOT%{_sysconfdir}/bash_completion.d/boinc-client
+install -Dp -m644 %{SOURCE11} %{buildroot}%{_sysconfdir}/bash_completion.d/boinc-client
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %pre
 %_pre_useradd boinc %{_localstatedir}/lib/boinc /sbin/nologin
@@ -172,6 +223,11 @@ rm -rf $RPM_BUILD_ROOT
 %post
 %_post_service %name
 
+#correct wrong owner and group on files under /var/lib/boinc and log files
+#caused by bug fixed in 5.10.45-8
+chown --silent -R boinc:boinc %{_localstatedir}/log/boinc* \
+%{_localstatedir}/lib/boinc/* 2>/dev/null || :
+
 %preun
 %_preun_service %name
 
@@ -179,39 +235,32 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 %config(noreplace) %{_sysconfdir}/bash_completion.d/
-%config %{_sysconfdir}/init.d/*
-%config %{_sysconfdir}/sysconfig/boinc-client
-%doc COPYING
-%doc COPYRIGHT
-%doc checkin_notes
-%doc checkin_notes_2007
-%doc checkin_notes_2006
-%doc checkin_notes_2005
-%doc checkin_notes_2004
-%doc checkin_notes_2003
-%doc checkin_notes_2002
+%config(noreplace) %{_sysconfdir}/sysconfig/%{name}
+%doc COPYING COPYRIGHT
+%doc checkin_notes checkin_notes_2007 checkin_notes_2006 checkin_notes_2005 checkin_notes_2004 checkin_notes_2003 checkin_notes_2002
 %{_bindir}/boinc
 %{_bindir}/boinc_client
-%{_bindir}/boinc_cmd
-%{_bindir}/crypt_prog
+%{_bindir}/boinccmd
 %{_bindir}/switcher
 %{_initrddir}/%{name}
+%{_mandir}/man1/boinccmd.1.*
 %{_mandir}/man1/boinc.1.*
-%{_mandir}/man1/boinc_client.1.*
-%{_mandir}/man1/boinc_cmd.1.*
 %defattr(-,boinc,boinc,-)
-%{_localstatedir}/lib/boinc
+%{_localstatedir}/lib/boinc/
+%{_libdir}/*.so.*
 
 %files -n boinc-manager -f BOINC-Manager.lang
 %defattr(-,root,root,-)
+%{_bindir}/boinc_gui
 %{_bindir}/boincmgr
+%{_datadir}/applications/boinc-manager.desktop
+%{_datadir}/icons/hicolor/16x16/apps/boincmgr.png
+%{_datadir}/icons/hicolor/32x32/apps/boincmgr.png
+%{_datadir}/icons/hicolor/48x48/apps/boincmgr.png
 %{_mandir}/man1/boincmgr.1.*
-%{_datadir}/applications/*.desktop
-%{_datadir}/boinc
-%{_iconsdir}/hicolor/*/apps/boincmgr.png
-%{_datadir}/locale/*
 
 %files devel
 %defattr(-,root,root,-)
 %{_libdir}/*.a
+%{_libdir}/*.so
 %{_includedir}/boinc
