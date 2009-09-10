@@ -5,7 +5,7 @@
 Summary:	The BOINC client core
 Name:		boinc-client
 Version:	6.6.37
-Release:	%mkrel 0.svn%{snap}.1
+Release:	%mkrel 0.svn%{snap}.2
 License:	LGPLv2+
 Group:		Sciences/Other
 URL:		http://boinc.berkeley.edu/
