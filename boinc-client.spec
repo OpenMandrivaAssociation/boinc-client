@@ -39,6 +39,7 @@ Patch4:		boinc-gcc44.patch
 #This won't be probably upstreamed as it might be unsafe for common usage
 #without setting proper group ownership of the password file.
 Patch6:		boinc-guirpcauth.patch
+Patch7:		boinc-client-init-typo-fix.patch
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires:	python-mysql
 BuildRequires:	curl-devel
@@ -97,6 +98,7 @@ This package contains development files for %{name}.
 %setup -q -n boinc_core_release_%{version_}
 %patch4 -p0
 %patch6 -p0
+%patch7 -p1
 
 # fix permissions and newlines on source files
 chmod 644 clientgui/{DlgItemProperties.h,AsyncRPC.cpp,DlgItemProperties.cpp}
