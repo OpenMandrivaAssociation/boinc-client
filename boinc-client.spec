@@ -1,3 +1,4 @@
+%define _disable_ld_no_undefined 1                                
 %define version_ 6_10_17
 %define Werror_cflags %nil
 
