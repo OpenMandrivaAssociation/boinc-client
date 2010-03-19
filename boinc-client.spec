@@ -1,4 +1,3 @@
-%define _disable_ld_no_undefined 1
 %define version_ 6_10_17
 %define Werror_cflags %nil
 
@@ -50,6 +49,7 @@ BuildRequires:	mysql-devel
 BuildRequires:	libxmu-devel
 BuildRequires:	libjpeg-devel libxslt-devel
 BuildRequires:	docbook2x
+BuildRequires:	sqlite3-devel
 
 
 %description
@@ -93,7 +93,6 @@ This package contains development files for %{name}.
 
 %prep
 %setup -q -n boinc_core_release_%{version_}
-##%patch4 -p0
 %patch6 -p0
 %patch7 -p1
 
@@ -118,7 +117,7 @@ sed -i 's/BOINC-Manager\.po/BOINC-Manager\.mo/g' locale/Makefile.in
 	      --enable-dynamic-client-linkage \
 	      --with-ssl \
 	      --with-x \
-	      STRIP=: DOCBOOK2X_MAN=/usr/bin/docbook2man \
+	      STRIP=: DOCBOOK2X_MAN=/usr/bin/db2x_docbook2man \
 	      --with-boinc-platform=%{boinc_platform}
 
 # Disable rpaths
