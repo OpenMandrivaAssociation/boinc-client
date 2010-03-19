@@ -1,11 +1,11 @@
-%define snap 20090725
-%define version_ 6_6_37
+%define _disable_ld_no_undefined 1
+%define version_ 6_10_17
 %define Werror_cflags %nil
 
 Summary:	The BOINC client core
 Name:		boinc-client
-Version:	6.6.37
-Release:	%mkrel 0.svn%{snap}.2
+Version:	6.10.17
+Release:	%mkrel 1
 License:	LGPLv2+
 Group:		Sciences/Other
 URL:		http://boinc.berkeley.edu/
@@ -31,9 +31,6 @@ Source8:	trim
 Source9:	noexec
 Source10:	unicode
 Source11:	boinc-client
-#Fix the gcc 4.4@glibc2.10 build
-#Reported in upstream bugtracker: http://boinc.berkeley.edu/trac/ticket/854
-Patch4:		boinc-gcc44.patch
 #Create password file rw for group, this enables passwordless connection
 #of manager from users of the boinc group.
 #This won't be probably upstreamed as it might be unsafe for common usage
@@ -48,10 +45,10 @@ BuildRequires:	mesaglut-devel
 BuildRequires:	mesaglu-devel
 BuildRequires:	openssl-devel
 BuildRequires:	wxgtku2.8-devel
-BuildRequires:  gettext
-BuildRequires:  mysql-devel
-BuildRequires:  libxmu-devel
-BuildRequires:  libjpeg-devel libxslt-devel
+BuildRequires:	gettext
+BuildRequires:	mysql-devel
+BuildRequires:	libxmu-devel
+BuildRequires:	libjpeg-devel libxslt-devel
 BuildRequires:	docbook2x
 
 
@@ -96,7 +93,7 @@ This package contains development files for %{name}.
 
 %prep
 %setup -q -n boinc_core_release_%{version_}
-%patch4 -p0
+##%patch4 -p0
 %patch6 -p0
 %patch7 -p1
 
@@ -105,17 +102,10 @@ chmod 644 clientgui/{DlgItemProperties.h,AsyncRPC.cpp,DlgItemProperties.cpp}
 sed -i 's/\r//' clientgui/DlgItemProperties.cpp
 
 %build
-%ifarch %{ix86}
-%global boinc_platform i686-pc-linux-gnu
-%endif
-%ifarch %{x86_64}
+%ifarch x86_64
 %global boinc_platform x86_64-pc-linux-gnu
-%endif
-%ifarch powerpc ppc
-%global boinc_platform powerpc-linux-gnu
-%endif
-%ifarch powerpc64 ppc64
-%global boinc_platform ppc64-linux-gnu
+%else
+%global boinc_platform i686-pc-linux-gnu
 %endif
 
 # We want to install .mo, not .po files, see http://boinc.berkeley.edu/trac/ticket/940
@@ -128,7 +118,7 @@ sed -i 's/BOINC-Manager\.po/BOINC-Manager\.mo/g' locale/Makefile.in
 	      --enable-dynamic-client-linkage \
 	      --with-ssl \
 	      --with-x \
-	      STRIP=: DOCBOOK2X_MAN=/usr/bin/db2x_docbook2man \
+	      STRIP=: DOCBOOK2X_MAN=/usr/bin/docbook2man \
 	      --with-boinc-platform=%{boinc_platform}
 
 # Disable rpaths
@@ -212,6 +202,7 @@ mv %{buildroot}%{_datadir}/boinc/boincmgr.48x48.png %{buildroot}%{_datadir}/icon
 # bash-completion
 
 install -Dp -m644 %{SOURCE11} %{buildroot}%{_sysconfdir}/bash_completion.d/boinc-client
+install -Dp -m644 %{SOURCE3} %{buildroot}%{_datadir}/applications/boinc-manager.desktop
 
 %clean
 rm -rf %{buildroot}
