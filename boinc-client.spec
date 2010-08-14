@@ -1,10 +1,10 @@
-%define _disable_ld_no_undefined 1                                
-%define version_ 6_10_17
-%define Werror_cflags %nil
+%define	_disable_ld_no_undefined 1
+%define	version_	6_10_56
+%define	Werror_cflags	%nil
 
 Summary:	The BOINC client core
 Name:		boinc-client
-Version:	6.10.17
+Version:	6.10.56
 Release:	%mkrel 1
 License:	LGPLv2+
 Group:		Sciences/Other
@@ -36,7 +36,6 @@ Source11:	boinc-client
 #This won't be probably upstreamed as it might be unsafe for common usage
 #without setting proper group ownership of the password file.
 Patch6:		boinc-guirpcauth.patch
-Patch7:		boinc-client-init-typo-fix.patch
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires:	python-mysql
 BuildRequires:	curl-devel
@@ -78,7 +77,10 @@ The BOINC Manager is a graphical monitor and control utility for the BOINC
 core client. It gives a detailed overview of the state of the client it is
 monitoring. The BOINC Manager has two modes of operation, the "Simple View" in
 which it only displays the most important information and the "Advanced View"
-in which all information and all control elements are available.
+in which all information and all control elements are available. You 
+have to "connect" to your running local BOINC client for manager to 
+work. Password for connecting to localhost is stored in 
+/var/lib/boinc/gui_rpc_auth.cfg and is different for every installation.
 
 %package devel
 Summary:	Development files for %{name}
@@ -95,7 +97,6 @@ This package contains development files for %{name}.
 %prep
 %setup -q -n boinc_core_release_%{version_}
 %patch6 -p0
-%patch7 -p1
 
 # fix permissions and newlines on source files
 chmod 644 clientgui/{DlgItemProperties.h,AsyncRPC.cpp,DlgItemProperties.cpp}
@@ -183,6 +184,14 @@ fi
 cd \$BOINCDIR
 boinc_gui >& /dev/null
 EOF
+
+cat > %{buildroot}/%{_localstatedir}/lib/boinc/remote_hosts.cfg << EOF
+localhost
+127.0.0.1
+EOF
+
+touch %{buildroot}/%{_localstatedir}/lib/boinc/gui_rpc_auth.cfg
+
 chmod a+x boincmgr
 popd
 
@@ -204,6 +213,12 @@ mv %{buildroot}%{_datadir}/boinc/boincmgr.48x48.png %{buildroot}%{_datadir}/icon
 install -Dp -m644 %{SOURCE11} %{buildroot}%{_sysconfdir}/bash_completion.d/boinc-client
 install -Dp -m644 %{SOURCE3} %{buildroot}%{_datadir}/applications/boinc-manager.desktop
 
+# allow remote config - we've protected it by random password +
+# localhost access only
+sed 's/--daemon --dir $BOINCDIR/--daemon --dir $BOINCDIR --allow_remote_gui_rpc/' \
+%{buildroot}/%{_initrddir}/%{name} > %{buildroot}/%{_initrddir}/%{name}.new
+mv %{buildroot}/%{_initrddir}/%{name}.new %{buildroot}/%{_initrddir}/%{name}
+
 %clean
 rm -rf %{buildroot}
 
@@ -221,6 +236,8 @@ rm -rf %{buildroot}
 chown --silent -R boinc:boinc %{_localstatedir}/log/boinc* \
 %{_localstatedir}/lib/boinc/* 2>/dev/null || :
 
+cat /dev/urandom|od -N6 -An -x | tr -d ' ' > %{_localstatedir}/lib/boinc/gui_rpc_auth.cfg
+
 %preun
 %_preun_service %name
 
@@ -229,6 +246,8 @@ chown --silent -R boinc:boinc %{_localstatedir}/log/boinc* \
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 %config(noreplace) %{_sysconfdir}/bash_completion.d/
 %config(noreplace) %{_sysconfdir}/sysconfig/%{name}
+%config(noreplace) %{_localstatedir}/lib/boinc/gui_rpc_auth.cfg
+%config(noreplace) %{_localstatedir}/lib/boinc/remote_hosts.cfg
 %doc COPYING COPYRIGHT
 %doc checkin_notes checkin_notes_2007 checkin_notes_2006 checkin_notes_2005 checkin_notes_2004 checkin_notes_2003 checkin_notes_2002
 %{_bindir}/boinc
