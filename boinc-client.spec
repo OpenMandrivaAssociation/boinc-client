@@ -1,10 +1,8 @@
-%define	_disable_ld_no_undefined 1
-%define	version_	6_10_56
-%define	Werror_cflags	%nil
+%define Werror_cflags %nil
 
 Summary:	The BOINC client core
 Name:		boinc-client
-Version:	6.10.56
+Version:	7.0.28
 Release:	%mkrel 1
 License:	LGPLv2+
 Group:		Sciences/Other
@@ -14,43 +12,33 @@ URL:		http://boinc.berkeley.edu/
 # svn export http://boinc.berkeley.edu/svn/tags/boinc_core_release_%{version_}
 # pushd boinc_core_release_%{version_}
 # ./_autosetup
-# ./noexec . Fix unnecessary execute rights on documentation files
-# ./unicode . Convert to UTF8
-# ./trim . Trim all binaries and other unnecessary things.
+# ../trim . Trim all binaries and other unnecessary things.
 # popd
-# tar -czvf boinc-%{version}.tar.gz boinc_core_release_%{version_}/
+# tar -cvJf boinc-%{version}.tar.xz boinc_core_release_%{version_}/
 Source0:	boinc-%{version}.tar.bz2
 Source1:	boinc-client-init-d
 Source2:	boinc-client-logrotate-d
 Source3:	boinc-manager.desktop
-Source4:	boinc.1
-Source5:	boinc_client.1
-Source6:	boinc_cmd.1
-Source7:	boincmgr.1
-Source8:	trim
-Source9:	noexec
-Source10:	unicode
-Source11:	boinc-client
+Source4:	trim
 #Create password file rw for group, this enables passwordless connection
 #of manager from users of the boinc group.
 #This won't be probably upstreamed as it might be unsafe for common usage
 #without setting proper group ownership of the password file.
-Patch6:		boinc-guirpcauth.patch
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
+Patch0:		boinc-guirpcauth.patch
 BuildRequires:	python-mysql
 BuildRequires:	curl-devel
 BuildRequires:	desktop-file-utils
-BuildRequires:	mesaglut-devel
-BuildRequires:	mesaglu-devel
-BuildRequires:	openssl-devel
-BuildRequires:	wxgtku2.8-devel
+BuildRequires:	wxgtku-devel
 BuildRequires:	gettext
 BuildRequires:	mysql-devel
-BuildRequires:	libxmu-devel
-BuildRequires:	libjpeg-devel libxslt-devel
-BuildRequires:	docbook2x
+BuildRequires:	docbook-utils
 BuildRequires:	sqlite3-devel
+BuildRequires:	glut-devel
+BuildRequires:	libxmu-devel
+BuildRequires:	libnotify-devel
 
+Requires:	logrotate
+Requires:	libxmu
 
 %description
 The Berkeley Open Infrastructure for Network Computing (BOINC) is an open-
@@ -77,10 +65,7 @@ The BOINC Manager is a graphical monitor and control utility for the BOINC
 core client. It gives a detailed overview of the state of the client it is
 monitoring. The BOINC Manager has two modes of operation, the "Simple View" in
 which it only displays the most important information and the "Advanced View"
-in which all information and all control elements are available. You 
-have to "connect" to your running local BOINC client for manager to 
-work. Password for connecting to localhost is stored in 
-/var/lib/boinc/gui_rpc_auth.cfg and is different for every installation.
+in which all information and all control elements are available.
 
 %package devel
 Summary:	Development files for %{name}
@@ -89,17 +74,53 @@ Group:		Development/Other
 Requires:	%{name} = %{version}-%{release}
 Requires:	openssl-devel
 Requires:	mysql-devel
-Provides:	%{name}-static-devel = %{version}-%{release}
+#Provides:	%{name}-static-devel = %{version}-%{release}
 
 %description devel
 This package contains development files for %{name}.
 
+%package static
+Summary:	Static libraries for %{name}
+Group:		Sciences/Other
+
+Requires:	%{name}-devel = %{version}-%{release}
+
+%description static
+This package contains static libraries for %{name}.
+
+%package doc
+Summary:	Documentation files for %{name}
+Group:		Sciences/Other
+BuildArch:	noarch
+
+Requires:	%{name} = %{version}-%{release}
+
+%description doc
+This package contains documentation files for %{name}.
+
 %prep
-%setup -q -n boinc_core_release_%{version_}
-%patch6 -p0
+%setup -q -n boinc-%{version}
+%patch0 -p0
+
+# fix utf8
+iconv -f ISO88591 -t UTF8 < checkin_notes > checkin_notes.utf8
+touch -r checkin_notes checkin_notes.utf8
+mv checkin_notes.utf8 checkin_notes
+
+iconv -f ISO88591 -t UTF8 < checkin_notes_2004 > checkin_notes_2004.utf8
+touch -r checkin_notes_2004 checkin_notes_2004.utf8
+mv checkin_notes_2004.utf8 checkin_notes_2004
+
+iconv -f ISO88591 -t UTF8 < checkin_notes_2005 > checkin_notes_2005.utf8
+touch -r checkin_notes_2005 checkin_notes_2005.utf8
+mv checkin_notes_2005.utf8 checkin_notes_2005
+
+iconv -f ISO88591 -t UTF8 < checkin_notes_2006 > checkin_notes_2006.utf8
+touch -r checkin_notes_2006 checkin_notes_2006.utf8
+mv checkin_notes_2006.utf8 checkin_notes_2006
 
 # fix permissions and newlines on source files
-chmod 644 clientgui/{DlgItemProperties.h,AsyncRPC.cpp,DlgItemProperties.cpp}
+chmod 644 clientgui/*.cpp  clientgui/*.h
 sed -i 's/\r//' clientgui/DlgItemProperties.cpp
 
 %build
@@ -109,24 +130,27 @@ sed -i 's/\r//' clientgui/DlgItemProperties.cpp
 %global boinc_platform i686-pc-linux-gnu
 %endif
 
-# We want to install .mo, not .po files, see http://boinc.berkeley.edu/trac/ticket/940
-sed -i 's/BOINC-Manager\.po/BOINC-Manager\.mo/g' locale/Makefile.in
+./_autosetup
 
-#./_autosetup
-%configure2_5x --disable-server \
-	      --enable-client \
-	      --enable-unicode \
-	      --enable-dynamic-client-linkage \
-	      --with-ssl \
-	      --with-x \
-	      STRIP=: DOCBOOK2X_MAN=/usr/bin/db2x_docbook2man \
-	      --with-boinc-platform=%{boinc_platform}
+%configure2_5x	--disable-dependency-tracking \
+		--disable-fcgi \
+		--disable-shared \
+		--disable-server \
+		--enable-client \
+		--enable-manager \
+		--enable-unicode \
+		--enable-dynamic-client-linkage \
+		--with-ssl \
+		--with-x \
+		--with-boinc-platform=%{boinc_platform}
+#		STRIP=: DOCBOOK2X_MAN=/usr/bin/docbook2man \
 
 # Disable rpaths
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
 
-# Parallel make does not work.
+# Parallel make does not work, see upstream bugtracker at:
+# http://boinc.berkeley.edu/trac/ticket/775
 make
 
 %install
@@ -139,7 +163,7 @@ mkdir -p %{buildroot}%{_localstatedir}/lib/boinc
 mkdir -p %{buildroot}%{_mandir}/man1
 mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d/
 
-make install INSTALL="%{__install} -p" DESTDIR=%{buildroot}
+%makeinstall_std
 
 rm -rf %{buildroot}%{_bindir}/1sec
 rm -rf %{buildroot}%{_bindir}/concat
@@ -152,6 +176,8 @@ rm -rf %{buildroot}%{_bindir}/status
 rm -rf %{buildroot}%{_bindir}/stop
 rm -rf %{buildroot}%{_bindir}/updater
 rm -rf %{buildroot}%{_bindir}/upper_case
+
+chmod a-x %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 
 pushd %{buildroot}%{_bindir}
 
@@ -184,14 +210,6 @@ fi
 cd \$BOINCDIR
 boinc_gui >& /dev/null
 EOF
-
-cat > %{buildroot}/%{_localstatedir}/lib/boinc/remote_hosts.cfg << EOF
-localhost
-127.0.0.1
-EOF
-
-touch %{buildroot}/%{_localstatedir}/lib/boinc/gui_rpc_auth.cfg
-
 chmod a+x boincmgr
 popd
 
@@ -201,78 +219,77 @@ install -p -m755 %{SOURCE1} %{buildroot}%{_initrddir}/%{name}
 install -p -m644 %{SOURCE2} %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 
 # icon
-mv %{buildroot}%{_datadir}/boinc/boincmgr.16x16.png %{buildroot}%{_datadir}/icons/hicolor/16x16/apps/boincmgr.png
-mv %{buildroot}%{_datadir}/boinc/boincmgr.32x32.png %{buildroot}%{_datadir}/icons/hicolor/32x32/apps/boincmgr.png
-mv %{buildroot}%{_datadir}/boinc/boincmgr.48x48.png %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/boincmgr.png
+cp clientgui/res/boincmgr.16x16.png %{buildroot}%{_datadir}/icons/hicolor/16x16/apps/boincmgr.png
+cp clientgui/res/boincmgr.32x32.png %{buildroot}%{_datadir}/icons/hicolor/32x32/apps/boincmgr.png
+cp clientgui/res/boincmgr.48x48.png %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/boincmgr.png
 
-
+%find_lang BOINC-Client
 %find_lang BOINC-Manager
 
 # bash-completion
 
-install -Dp -m644 %{SOURCE11} %{buildroot}%{_sysconfdir}/bash_completion.d/boinc-client
+install -Dp -m644 client/scripts/boinc.bash %{buildroot}%{_sysconfdir}/bash_completion.d/boinc-client
 install -Dp -m644 %{SOURCE3} %{buildroot}%{_datadir}/applications/boinc-manager.desktop
-
-# allow remote config - we've protected it by random password +
-# localhost access only
-sed 's/--daemon --dir $BOINCDIR/--daemon --dir $BOINCDIR --allow_remote_gui_rpc/' \
-%{buildroot}/%{_initrddir}/%{name} > %{buildroot}/%{_initrddir}/%{name}.new
-mv %{buildroot}/%{_initrddir}/%{name}.new %{buildroot}/%{_initrddir}/%{name}
 
 %clean
 rm -rf %{buildroot}
 
 %pre
-%_pre_useradd boinc %{_localstatedir}/lib/boinc /sbin/nologin
-
-%postun
-%_postun_userdel boinc
+getent group boinc >/dev/null || groupadd -r boinc
+getent passwd boinc >/dev/null || \
+useradd -r -g boinc -d %{_localstatedir}/lib/boinc -s /sbin/nologin -c "BOINC client account." boinc
+exit 0
 
 %post
-%_post_service %name
+/sbin/chkconfig --add boinc-client
 
 #correct wrong owner and group on files under /var/lib/boinc and log files
 #caused by bug fixed in 5.10.45-8
 chown --silent -R boinc:boinc %{_localstatedir}/log/boinc* \
 %{_localstatedir}/lib/boinc/* 2>/dev/null || :
 
-cat /dev/urandom|od -N6 -An -x | tr -d ' ' > %{_localstatedir}/lib/boinc/gui_rpc_auth.cfg
-
 %preun
-%_preun_service %name
+if [ $1 -eq 0 ]; then #if uninstalling, not only updating
+	/sbin/service boinc-client stop
+	/sbin/chkconfig --del boinc-client
+fi
 
-%files
-%defattr(-,root,root,-)
+%postun
+if [ "$1" -ge "1" ] ; then
+        /sbin/service boinc-client condrestart >/dev/null 2>&1 || :
+fi
+
+%files -f BOINC-Client.lang
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 %config(noreplace) %{_sysconfdir}/bash_completion.d/
 %config(noreplace) %{_sysconfdir}/sysconfig/%{name}
-%config(noreplace) %{_localstatedir}/lib/boinc/gui_rpc_auth.cfg
-%config(noreplace) %{_localstatedir}/lib/boinc/remote_hosts.cfg
 %doc COPYING COPYRIGHT
-%doc checkin_notes checkin_notes_2007 checkin_notes_2006 checkin_notes_2005 checkin_notes_2004 checkin_notes_2003 checkin_notes_2002
 %{_bindir}/boinc
 %{_bindir}/boinc_client
 %{_bindir}/boinccmd
 %{_bindir}/switcher
 %{_initrddir}/%{name}
-%{_mandir}/man1/boinccmd.1.*
-%{_mandir}/man1/boinc.1.*
-%defattr(-,boinc,boinc,-)
-%{_localstatedir}/lib/boinc/
-%{_libdir}/*.so.*
+%attr(775,boinc,boinc) %{_localstatedir}/lib/boinc/
+
+%files doc
+%doc checkin_notes checkin_notes_2007 checkin_notes_2006 checkin_notes_2005 checkin_notes_2004 checkin_notes_2003 checkin_notes_2002
 
 %files -n boinc-manager -f BOINC-Manager.lang
-%defattr(-,root,root,-)
 %{_bindir}/boinc_gui
 %{_bindir}/boincmgr
 %{_datadir}/applications/boinc-manager.desktop
 %{_datadir}/icons/hicolor/16x16/apps/boincmgr.png
 %{_datadir}/icons/hicolor/32x32/apps/boincmgr.png
 %{_datadir}/icons/hicolor/48x48/apps/boincmgr.png
-%{_mandir}/man1/boincmgr.1.*
+
+%files static
+%{_libdir}/libboinc.a
+%{_libdir}/libboinc_api.a
+%{_libdir}/libboinc_crypt.a
+%{_libdir}/libboinc_graphics2.a
+%{_libdir}/libboinc_opencl.a
+%{_libdir}/libboinc_zip.a
 
 %files devel
-%defattr(-,root,root,-)
-%{_libdir}/*.a
-%{_libdir}/*.so
 %{_includedir}/boinc
+
