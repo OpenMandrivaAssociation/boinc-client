@@ -33,7 +33,11 @@ BuildRequires:	gettext
 BuildRequires:	mysql-devel
 BuildRequires:	docbook-utils
 BuildRequires:	sqlite3-devel
+%if %{mdvver} < 201100
+BuildRequires:	mesaglut-devel
+%else
 BuildRequires:	glut-devel
+%endif
 BuildRequires:	libxmu-devel
 BuildRequires:	libnotify-devel
 
