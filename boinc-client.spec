@@ -3,7 +3,7 @@
 Summary:	The BOINC client core
 Name:		boinc-client
 Version:	7.0.28
-Release:	%mkrel 1
+Release:	2
 License:	LGPLv2+
 Group:		Sciences/Other
 URL:		http://boinc.berkeley.edu/
@@ -25,6 +25,7 @@ Source4:	trim
 #This won't be probably upstreamed as it might be unsafe for common usage
 #without setting proper group ownership of the password file.
 Patch0:		boinc-guirpcauth.patch
+Patch1:		boinc-7.0.28-automake1.12.patch
 BuildRequires:	python-mysql
 BuildRequires:	curl-devel
 BuildRequires:	desktop-file-utils
@@ -105,6 +106,7 @@ This package contains documentation files for %{name}.
 %prep
 %setup -q -n boinc-%{version}
 %patch0 -p0
+%patch1 -p1
 
 # fix utf8
 iconv -f ISO88591 -t UTF8 < checkin_notes > checkin_notes.utf8
