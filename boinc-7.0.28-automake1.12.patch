@@ -1,0 +1,11 @@
+diff -urN boinc-7.0.28/configure.ac boinc-7.0.28-patched/configure.ac
+--- boinc-7.0.28/configure.ac	2012-05-19 02:51:26.000000000 +0000
++++ boinc-7.0.28-patched/configure.ac	2012-07-13 00:12:11.000000000 +0000
+@@ -43,6 +43,7 @@
+ SAH_LINKS
+ AC_LANG_PUSH(C)
+ AM_PROG_CC_C_O
++AC_PROG_OBJCXX
+ 
+ m4_divert_once([HELP_ENABLE],
+   AS_HELP_STRING([BOINC Default enable values], [--enable-server --enable-client --enable-libraries --enable-manager: builds server, client, and libraries]))

@@ -1,0 +1,6 @@
+sources:
+  "boinc-7.0.28.tar.bz2:"	fcfb9ecd8eb8e5827b235b864db07941304e8bde
+  "boinc-client-init-d:"	56d84a17d9b820eb1e08b5f1d63c78c62660d47d
+  "boinc-client-logrotate-d:"	5f502a107c892344ae5f19e791559595ab04efde
+  "boinc-manager.desktop:"	78686c16e878b52bca4c7bad209906127cbe2e96
+  "trim:"	3d6263ba34ebe07fcd5428cc5d2bf0a96b0f84c3
