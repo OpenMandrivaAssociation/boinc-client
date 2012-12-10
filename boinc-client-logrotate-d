@@ -1,0 +1,77 @@
+# Log Rotation for BOINC Daemon Logs
+#
+# See http://boinc.berkeley.edu/ for more information about BOINC
+#
+# Daemon is stopped and then restarted after the logs are rotated.
+#
+# On restart, all results that checkpoint will fall back to the last one, if it exists.
+# On restart, all results that did not checkpoint will start from the beginning.
+
+# Author: Kathryn Marks <kathryn.boinc@gmail.com>
+# Created: October 6, 2007
+# Last Modified: October 15, 2007
+######################################################################
+
+# Global Parameters
+
+missingok
+compress
+delaycompress
+notifempty
+nomail
+
+# Log Specific Parameters
+
+# boinc.log
+
+# Normal usage:
+# Rotate weekly and keep about 2 months worth
+
+/var/log/boinc.log
+{
+	weekly
+	rotate 8
+	create 664 boinc boinc
+	sharedscripts
+	prerotate
+	  if [ -f /var/lock/subsys/boinc ]; then
+	    touch /var/run/boinc_was_running
+	    /etc/init.d/boinc stop
+	  fi
+	endscript
+	postrotate
+	  if [ -f /var/run/boinc_was_running ]; then
+	    rm /var/run/boinc_was_running
+	    /etc/init.d/boinc start
+	  fi
+	endscript 	
+}
+
+
+# boincerr.log
+
+# Normal usage:
+# Rotate monthly and keep about 2 months worth
+
+/var/log/boincerr.log
+{
+	monthly
+	rotate 2
+	create 664 boinc boinc
+	sharedscripts
+	prerotate
+	  if [ -f /var/lock/subsys/boinc ]; then
+	    touch /var/run/boinc_was_running
+	    /etc/init.d/boinc stop
+	  fi
+	endscript
+	postrotate
+	  if [ -f /var/run/boinc_was_running ]; then
+	    rm /var/run/boinc_was_running
+	    /etc/init.d/boinc start
+	  fi
+	endscript 	
+}
+
+## EOF ##
+

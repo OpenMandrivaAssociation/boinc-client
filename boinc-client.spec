@@ -34,11 +34,7 @@ BuildRequires:	gettext
 BuildRequires:	mysql-devel
 BuildRequires:	docbook-utils
 BuildRequires:	sqlite3-devel
-%if %{mdvver} < 201100
-BuildRequires:	mesaglut-devel
-%else
-BuildRequires:	glut-devel
-%endif
+BuildRequires:	pkgconfig(glut)
 BuildRequires:	libxmu-devel
 BuildRequires:	libnotify-devel
 
@@ -299,3 +295,177 @@ fi
 %files devel
 %{_includedir}/boinc
 
+
+
+%changelog
+* Fri Jul 13 2012 Andrey Bondrov <abondrov@mandriva.org> 7.0.28-2
++ Revision: 809095
+- Add patch1 to fix build with automake 1.12.x
+
+* Sat May 19 2012 Andrey Bondrov <abondrov@mandriva.org> 7.0.28-1
++ Revision: 799643
+- Update to 7.0.28, use some work that Mageia did on 7.0.6
+
+* Sat Aug 14 2010 Tomas Kindl <supp@mandriva.org> 6.10.56-1mdv2011.0
++ Revision: 569795
+- update to latest version - 6.10.56
+- enable 'remote' GUI acces from localhost with random password
+- preserve conf files
+
+* Fri Mar 19 2010 Tomas Kindl <supp@mandriva.org> 6.10.17-1mdv2010.1
++ Revision: 525287
+- fix underlinking issue
+- fix missing BuildRequires
+- fix manpages generation
+- Now really drop that patch...
+- bump to 6.10.17 release
+- frop gcc4.4 patch as it's no longer needed
+
+  + Thomas Backlund <tmb@mandriva.org>
+    - fix typo in initscript
+
+  + Thierry Vignaud <tv@mandriva.org>
+    - rebuild
+
+  + Emmanuel Andry <eandry@mandriva.org>
+    - New version 6.6.37
+    - use fedora spec and patches
+
+* Sat Feb 28 2009 Guillaume Rousse <guillomovitch@mandriva.org> 6.6.1-1.svn20081217.2mdv2009.1
++ Revision: 345952
+- rebuild
+
+* Tue Feb 10 2009 Zombie Ryushu <ryushu@mandriva.org> 6.6.1-1.svn20081217.1mdv2009.1
++ Revision: 339118
+- Upgrade to 6.6.1
+- Upgrade to 6.6.1
+- New Version 6.4.5
+- New Version 6.4.5
+
+* Sun Jun 15 2008 Funda Wang <fwang@mandriva.org> 5.10.45-1.svn20080315.1mdv2009.0
++ Revision: 219256
+- BR unicode version of wxgtk2.8
+- fix version
+- disable server
+- add missing files
+- covert to mandriva style
+- import boinc-client
+
+
+* Sat May 17 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.45-14.20080315svn
+- Fixed opening locales by adding boinc-locales.patch
+
+* Sat May 17 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.45-13.20080315svn
+- Fixed boincmgr segfaulting on F9/x86_64 (#445902) by adding
+  boinc-parsecolor.patch (Patch2).
+
+* Mon May 12 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.45-12.20080315svn
+- Do not ship ca-bundle.crt as it is already included in curl.
+- Fixed the almost empty debuginfo package (do not strip anything).
+- Patches documented according to the guidelines (PatchUpstreamStatus)
+
+* Sun May 04 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.45-11.20080315svn
+- Fixed find command because starting with findutils-4.4.0-1.fc10, find 
+  returns a non-zero value when "-delete" fails.
+  (for more details on this see bug #20802 on savannah.gnu.org)
+
+* Sat May 03 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.45-10.20080315svn
+- Fixed handling stale lockfiles (#444936).
+- Initscript fixed to be compliant with current SysVInit guidelines
+  (added condrestart, try-restart, force-reload actions).
+
+* Wed Apr 23 2008 Lubomir Kundrak <lkundrak@redhat.com> - 5.10.45-9.20080315svn
+- Do not expect chown of nonexistent files to succeed (#443568)
+
+* Mon Apr 14 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.45-8.20080315svn
+- Fixed projects permissions (calling chown recursively).
+
+* Mon Apr 14 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.45-7.20080315svn
+- Fixed running the boinc daemon as boinc user instead of root, file
+  permissions changed accordingly.
+
+* Mon Apr 07 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.45-6.20080315svn
+- Using --with-boinc-platform=i686-pc-linux-gnu on i386 instead of --build,
+  --host, --target
+- Added bash completion script.
+
+* Fri Apr 04 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.45-5.20080315svn
+- Fixed build on i386 since it needs to be configured as i686-pc-linux-gnu 
+  and not i386-pc-linux-gnu.
+
+* Mon Mar 24 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.45-4.20080315svn
+- Removed unnecessary slash before the {_localstatedir} macro.
+
+* Sun Mar 23 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.45-3.20080315svn
+- Logs moved to /var/log so that all SELinux related things could be removed.
+- The error.log file has been renamed to boincerr.log.
+
+* Sun Mar 16 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.45-2.20080315svn
+- Fixed typo in the semanage command (missing boinc subdirectory and quotes).
+- Fixed installing empty log files.
+- Fixed Patch1 (has been created before propagating the flags using the
+  _autosetup script).
+
+* Sat Mar 15 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.45-1.20080315svn
+- Updated to 5.10.45
+- Added Patch1 removing -fomit-frame-pointer and -ffast-math compiler flags.
+- Updated Patch0 (/lib/boinc_cmd.C changes have been merged in upstream).
+- Log files (/var/lib/{boinc,error}.log) are touched during the installation
+  so that correct(?) SELinux context can be set on them.
+- Added Requires(post, postun): policycoreutils because of previous point.
+
+* Sat Mar 08 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.40-8.20080206svn
+- Added missing Requires: mysql-devel for the -devel subpackage
+
+* Fri Mar 07 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.40-7.20080206svn
+- Removed unnecessary client stopping when upgrading.
+- Removed unnecessary ldconfig calls.
+- A few changes unifying macros usage.
+- Fixed missing directory ownership of {_localstatedir}/lib/boinc
+- Added missing Requires: openssl-devel for the -devel subpackage
+
+* Wed Feb 27 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.40-6.20080206svn
+- Added patch making the sources compatible with GCC4.3
+
+* Mon Feb 25 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.40-5.20080206svn
+- Added the "stripchart" source directory to be trimmed.
+- Removed all translations (will be added later through l10n specspo module).
+- Fixed logrotate in case that boinc won't be running at the logrotate time.
+- Changed summary and description according to upstream's choice.
+- Fixed wrong SELinux context on error.log and boinc.log.
+- Removed .svn directories from the source.
+- Fixed missing Short-Description field in the init script.
+- Service disabled by default.
+- Fixed missing reload action in the init script.
+- Changed the way of using the subsys directory for locking so that 
+  rpmlint doesn't complain.
+- Added script converting non-unicode files into UTF8.
+- Added script removing execution rights on documentation files.
+- Added documentation: checkin_notes_2007
+- Init script behaves polite now when starting/stopping the service which
+  has been already started/stopped (i.e. exits with 0).
+
+* Fri Feb 16 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.40-4.20080206svn
+- Fixed locales installation path
+- Fixed missing Provides: boinc-client-static in the -devel subpackage
+
+* Thu Feb 14 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.40-3.20080206svn
+- Fixed the init script (now using the daemon function properly)
+- Fixed missing chkconfig setup
+- Added Requires: chkconfig
+
+* Tue Feb 12 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.40-2.20080206svn
+- Fixed missing boinc user and group
+
+* Tue Feb 06 2008 Milos Jakubicek <xjakub@fi.muni.cz> - 5.10.40-1.20080206svn
+- Updated to 5.10.40.
+- Fixed unpackaged files: libboinc_graphics*.
+- Fixed missing BuildRequires: mysql-devel, libXmu-devel, libjpeg-devel.
+- Added locales.
+- Added script trimming binaries and other unnecessary code from the source.
+- Added ldconfig call for the -devel subpackage.
+- Added Czech and German translation.
+
+* Wed Jan 09 2008 Debarshi Ray <rishi@fedoraproject.org> - 5.10.32-1.20080109svn
+- Initial build. Imported SPEC written by Eric Myers and Milos Jakubicek.
+- Disabled parallel make to prevent failure with -j3.

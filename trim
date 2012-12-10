@@ -1,0 +1,25 @@
+#!/bin/bash
+
+if [ -z $1 ]; then 
+    echo "No path specified: use \"trim [PATH_TO_SOURCE_TOP_DIR]\"";
+	exit 1;
+	fi
+	
+	# remove all binaries and other unnecessary things 
+	
+	echo "Trimming directories..."
+	
+	DIRS="win_build html openssl client/os2 client/win clientgui/mac clientlib clienttray curl/include curl/mswin curl/patches lib/mac mac_build mac_installer zip/zip/macos zip/zip/win32 zip/unzip/macos zip/unzip/win32 zlib RSAEuro stripchart coprocs"
+	
+	for DIR in $DIRS; do
+	    /bin/rm -rf $1/$DIR;
+		echo $1/$DIR;
+	done
+		
+	echo "Trimming wxWidgets translations..."
+		
+	# remove wxWidgets translations
+	find $1/locale -name wxstd.mo -delete
+		
+	echo "Done."
+		
