@@ -1,2 +1,4 @@
+removed_sources:
+  boinc-7.0.28.tar.bz2: fcfb9ecd8eb8e5827b235b864db07941304e8bde
 sources:
-  "boinc-7.0.28.tar.bz2": fcfb9ecd8eb8e5827b235b864db07941304e8bde
+  boinc-7.2.42.tar.xz: c2546e3c0e7cce2c92ce8fdb8b5f2dd9376d578d
