@@ -1,0 +1,16 @@
+#!/bin/bash
+# Wrap script used to fix GPU detection. You must run it under your user after the login.
+# To use this script you must first disable boinc daemon:
+#    #systemctl disable boinc-client.service
+#    #systemctl stop boinc-client.service
+#
+# Add you user to boinc group:
+#    #usermod -G boinc <your_username>
+#
+# Then change directory and files permissions:
+#    #chmod -R g+rw /var/lib/boinc
+#    #chmod g+rw /var/log/boinc*
+#
+# Now you can set your DE to run this script at login.
+
+/usr/bin/boinc --dir /var/lib/boinc

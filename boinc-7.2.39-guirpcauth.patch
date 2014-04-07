@@ -1,0 +1,15 @@
+--- a/client/gui_rpc_server.cpp.orig	2013-01-15 11:31:04.427690558 +0100
++++ b/client/gui_rpc_server.cpp	2013-01-15 11:31:24.107748645 +0100
+@@ -168,12 +168,7 @@
+     // they can cause code to execute as this user.
+     // So better protect it.
+     //
+-    if (g_use_sandbox) {
+-        // Allow group access so authorized administrator can modify it
+-        chmod(GUI_RPC_PASSWD_FILE, S_IRUSR|S_IWUSR | S_IRGRP | S_IWGRP);
+-    } else {
+-        chmod(GUI_RPC_PASSWD_FILE, S_IRUSR|S_IWUSR);
+-    }
++    chmod(GUI_RPC_PASSWD_FILE, S_IRUSR|S_IWUSR | S_IRGRP | S_IWGRP);
+ #endif
+ }
