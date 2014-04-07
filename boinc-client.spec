@@ -40,7 +40,9 @@ BuildRequires:	openssl-devel
 BuildRequires:	docbook2x
 BuildRequires:	sqlite3-devel
 BuildRequires:	pkgconfig(glut)
-BuildRequires:	libxmu-devel
+BuildRequires:	pkgconfig(glu)
+BuildRequires:	pkgconfig(xmu)
+BuildRequires:	pkgconfig(xi)
 BuildRequires:	libnotify-devel
 BuildRequires:	xcb-util-devel
 BuildRequires:	gtk+2.0-devel
