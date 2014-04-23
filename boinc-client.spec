@@ -3,7 +3,7 @@
 Summary:	The BOINC client core
 Name:		boinc-client
 Version:	7.2.42
-Release:	1
+Release:	2
 License:	LGPLv2+
 Group:		Sciences/Other
 URL:		http://boinc.berkeley.edu/
