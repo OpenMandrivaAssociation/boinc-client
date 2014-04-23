@@ -3,7 +3,7 @@
 Summary:	The BOINC client core
 Name:		boinc-client
 Version:	7.2.42
-Release:	2
+Release:	3
 License:	LGPLv2+
 Group:		Sciences/Other
 URL:		http://boinc.berkeley.edu/
@@ -208,18 +208,13 @@ useradd -r -g boinc -d %{_localstatedir}/lib/boinc -s /sbin/nologin -c "BOINC cl
 exit 0
 
 %post
-/sbin/chkconfig --add boinc-client
+%_post_service %{name}
 
 %preun
-if [ $1 -eq 0 ]; then #if uninstalling, not only updating
-	/sbin/service boinc-client stop
-	/sbin/chkconfig --del boinc-client
-fi
+%_preun_service %{name}
 
 %postun
-if [ "$1" -ge "1" ] ; then
-        /sbin/service boinc-client condrestart >/dev/null 2>&1 || :
-fi
+%_postun_service %{name}
 
 %files -f BOINC-Client.lang
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
