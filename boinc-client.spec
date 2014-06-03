@@ -43,10 +43,10 @@ BuildRequires:	pkgconfig(glut)
 BuildRequires:	pkgconfig(glu)
 BuildRequires:	pkgconfig(xmu)
 BuildRequires:	pkgconfig(xi)
-BuildRequires:	libnotify-devel
+BuildRequires:	pkgconfig(libnotify)
 BuildRequires:	xcb-util-devel
-BuildRequires:	gtk+2.0-devel
-BuildRequires:	libxscrnsaver-devel
+BuildRequires:	pkgconfig(gtk+-2.0)
+BuildRequires:	pkgconfig(xscrnsaver)
 BuildRequires:	icoutils
 Requires:	logrotate
 
