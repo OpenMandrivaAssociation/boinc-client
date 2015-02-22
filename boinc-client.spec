@@ -48,6 +48,7 @@ BuildRequires:	xcb-util-devel
 BuildRequires:	pkgconfig(gtk+-2.0)
 BuildRequires:	pkgconfig(xscrnsaver)
 BuildRequires:	icoutils
+BuildRequires:	gcc-c++, gcc, gcc-cpp
 Requires:	logrotate
 
 %description
@@ -130,6 +131,9 @@ touch -r checkin_notes_2011 checkin_notes_2011.utf8
 mv checkin_notes_2011.utf8 checkin_notes_2011
 
 %build
+export CC=gcc
+export CXX=g++
+
 %ifarch x86_64
 %global boinc_platform x86_64-pc-linux-gnu
 %else
@@ -138,7 +142,7 @@ mv checkin_notes_2011.utf8 checkin_notes_2011
 
 ./_autosetup
 
-%configure2_5x	LIBTOOL='/usr/bin/libtool --tag=CC' \
+%configure2_5x \
 		--disable-dependency-tracking \
 		--disable-fcgi \
 		--disable-shared \
