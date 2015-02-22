@@ -138,7 +138,8 @@ mv checkin_notes_2011.utf8 checkin_notes_2011
 
 ./_autosetup
 
-%configure2_5x	--disable-dependency-tracking \
+%configure2_5x	LIBTOOL='/usr/bin/libtool --tag=CC' \
+		--disable-dependency-tracking \
 		--disable-fcgi \
 		--disable-shared \
 		--disable-server \
@@ -148,7 +149,8 @@ mv checkin_notes_2011.utf8 checkin_notes_2011
 		--enable-dynamic-client-linkage \
 		--with-ssl \
 		--with-x \
-		--with-boinc-platform=%{boinc_platform}
+		--with-boinc-platform=%{boinc_platform} 
+        
 
 # Disable rpaths
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
