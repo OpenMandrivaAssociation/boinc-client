@@ -107,7 +107,7 @@ This package contains documentation files for %{name}.
 
 %prep
 %setup -qn boinc
-%apply_patches
+%autopatch -p1
 
 # fix utf8
 iconv -f ISO88591 -t UTF8 < checkin_notes_2004 > checkin_notes_2004.utf8
