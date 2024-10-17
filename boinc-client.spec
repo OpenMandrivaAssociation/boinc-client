@@ -6,7 +6,7 @@ Version:	7.2.42
 Release:	4
 License:	LGPLv2+
 Group:		Sciences/Other
-URL:		http://boinc.berkeley.edu/
+URL:		https://boinc.berkeley.edu/
 # The source for this package was pulled from upstream's vcs. Use the
 # following commands to generate the tarball:
 # git clone git://boinc.berkeley.edu/boinc-v2.git boinc
